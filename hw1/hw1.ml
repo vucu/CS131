@@ -5,7 +5,6 @@ let inset e s =
 	in 
 		List.exists func s
 
-
 let subset a b = 
 	let func elem =
 		inset elem b
@@ -15,8 +14,15 @@ let subset a b =
 		
 let equal_sets a b =
 	if subset a b && subset b a
-		then true
-		else false;;
+	then true
+	else false;;
 
+let set_union a b = a @ b;;
 
+let set_intersection a b =
+	let func elem =
+		inset elem b
+	in
+		List.filter func a
 		
+
