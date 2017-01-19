@@ -87,47 +87,47 @@ type ('terminal, 'nonterminal) symbol =
 	| N of 'nonterminal;;
 
 (* Check for terminable symbol *)
-let check_symbol s good_rules = 
+let check_symbol s terminables = 
 	match s with
 	| T s -> true
-	| N s -> inset s good_rules;;
+	| N s -> inset s terminables;;
 
 (* Check for terminable rhs *)
-let rec check_rhs rhs good_rules = 
+let rec check_rhs rhs terminables = 
 	match rhs with
 	| [] -> true
-	| h::t -> if (check_symbol h good_rules) 
-		then check_rhs t good_rules
+	| h::t -> if (check_symbol h terminables) 
+		then check_rhs t terminables
 		else false;;
 
 (* Find the set of terminal (good) symbols. *)
-let rec core_terminal_set good_rules = function
-	| [] -> good_rules
-	| (a, b)::t -> if (check_rhs b good_rules)
+let rec core_terminal_set terminables = function
+	| [] -> terminables
+	| (a, b)::t -> if (check_rhs b terminables)
 		then (
-			if (inset a good_rules) 
-			then core_terminal_set good_rules t 
-			else core_terminal_set (a::good_rules) t
+			if (inset a terminables) 
+			then core_terminal_set terminables t 
+			else core_terminal_set (a::terminables) t
 		)
-		else core_terminal_set good_rules t;;
+		else core_terminal_set terminables t;;
 
 (* Helper function to return the correct function type for computed fixed point. *)
-let fixed_point_core_set (good_rules, rules) =
-	((core_terminal_set good_rules rules), rules);;
+let fixed_point_core_set (terminables, rules) =
+	((core_terminal_set terminables rules), rules);;
 
 let equal_fst (sA, rA) (sB, rB) = 
 	equal_sets sA sB
 
-let compute_good_rules (good_rules, rules) =  
+let compute_terminables (terminables, rules) =  
 	fst(computed_fixed_point equal_fst fixed_point_core_set ([], rules));;
 
 (* Check for terminable rules *)
-let rec check_rules rules good_rules = 
+let rec check_rules rules terminables = 
 	match rules with
 	| [] -> []
-	| (symbol, rhs)::t -> if (check_rhs rhs good_rules) 
-		then (symbol, rhs)::(check_rules t good_rules) 
-		else check_rules t good_rules;;	
+	| (symbol, rhs)::t -> if (check_rhs rhs terminables) 
+		then (symbol, rhs)::(check_rules t terminables) 
+		else check_rules t terminables;;	
 
 let filter_blind_alleys (start, rules) = 
-	(start, check_rules rules (compute_good_rules ([], rules)));; 
+	(start, check_rules rules (compute_terminables ([], rules)));; 
