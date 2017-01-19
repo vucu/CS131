@@ -77,4 +77,47 @@ let rec rle_decode lp =
 	match lp with
 	| [] -> []
 	| (h1, h2) :: t -> (rle_expand h1 h2) @ (rle_decode t)
-						
+
+(****************)
+(* Filter blind alleys functions *)
+(****************)
+
+type ('terminal, 'nonterminal) symbol = 
+	| T of 'terminal 
+	| N of 'nonterminal;;
+
+(* Check if subrule is good *)
+let is_subrule_good good_rules = function
+	| T s -> true
+	| N s -> subset [s] good_rules;;
+
+(* Rule: a b pair where a is a non-terminal symbol and b is list of subrules. *)
+let rec is_rule_good good_rules = function
+	| [] -> true
+	(* Check that each subrule is terminal *)
+	| h::t -> if (is_subrule_good good_rules h) then is_rule_good good_rules t else false;;
+
+(* Find the set of terminal (good) symbols. *)
+let rec core_terminal_set good_rules = function
+	| [] -> good_rules
+	| (a, b)::t -> if (is_rule_good good_rules b)
+		then (if (subset [a] good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
+		else core_terminal_set good_rules t;;
+
+(* Helper function to return the correct function type for computed fixed point. *)
+let fixed_point_core_set (good_rules, rules) =
+	((core_terminal_set good_rules rules), rules);;
+
+let compute_good_rules (good_rules, rules) =  
+	fst(computed_fixed_point (fun (a, _) (b, _) -> equal_sets a b) fixed_point_core_set ([], rules));;
+
+(* If rule is good, include in return, else ignore. *)
+let rec check_rules good_rules = function
+	| [] -> []
+	| (a, b)::t -> if (is_rule_good good_rules b) 
+		then (a, b)::(check_rules good_rules t) 
+		else check_rules good_rules t;;	
+
+(* Use computed fixed point to find the complete set of good rules. *)
+let filter_blind_alleys  = function
+	| (start_symbol, rules) -> (start_symbol, check_rules (compute_good_rules ([], rules)) rules);; 
