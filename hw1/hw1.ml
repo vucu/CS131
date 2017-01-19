@@ -118,7 +118,7 @@ let fixed_point_core_set (terminables, rules) =
 let equal_fst (sA, rA) (sB, rB) = 
 	equal_sets sA sB
 
-let compute_terminables (terminables, rules) =  
+let get_terminables rules =  
 	fst(computed_fixed_point equal_fst fixed_point_core_set ([], rules));;
 
 (* Check for terminable rules *)
@@ -130,4 +130,4 @@ let rec check_rules rules terminables =
 		else check_rules t terminables;;	
 
 let filter_blind_alleys (start, rules) = 
-	(start, check_rules rules (compute_terminables ([], rules)));; 
+	(start, check_rules rules (get_terminables rules));; 
