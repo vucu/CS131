@@ -25,4 +25,45 @@ let set_intersection a b =
 	in
 		List.filter func a
 		
+let set_diff a b =
+	let func elem =
+		not (inset elem b)
+	in
+		List.filter func a
+	
+	
+(* Check if x is a fixed point of f *)
+let fixed_point eq f x =
+	if eq (f x) x
+	then true
+	else false;;
+	
+let rec computed_fixed_point eq f x =
+	if fixed_point eq f x
+	then x
+	else computed_fixed_point eq f (f x);;
 
+	
+(* Calculate periodic value *)	
+let rec period f p x = 
+	if p = 0 
+    then x
+    else period f (p-1) (f x);;
+
+(* Check if x is a fixed point of f p *)	
+let rec periodic_point eq f p x =
+	if eq (period f p x) x 
+	then true
+	else false;;
+	
+let rec computed_periodic_point eq f p x = 
+	if periodic_point eq f p x
+	then x
+	else computed_periodic_point eq f p (f x);;
+
+	
+let rec while_away s p x =
+	if p x
+	then x :: while_away s p (s x)
+	else [];;
+	

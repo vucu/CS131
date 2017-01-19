@@ -31,3 +31,29 @@ let set_intersection_test1 =
   equal_sets (set_intersection [3;1;3] [1;2;3]) [1;3]
 let set_intersection_test2 =
   equal_sets (set_intersection [1;2;3;4] [3;1;2;4]) [4;3;2;1]
+
+let set_diff_test0 = equal_sets (set_diff [1;3] [1;4;3;1]) []
+let set_diff_test1 = equal_sets (set_diff [4;3;1;1;3] [1;3]) [4]
+let set_diff_test2 = equal_sets (set_diff [4;3;1] []) [1;3;4]
+let set_diff_test3 = equal_sets (set_diff [] [4;3;1]) []
+
+let computed_fixed_point_test0 =
+  computed_fixed_point (=) (fun x -> x / 2) 1000000000 = 0
+let computed_fixed_point_test1 =
+  computed_fixed_point (=) (fun x -> x *. 2.) 1. = infinity
+let computed_fixed_point_test2 =
+  computed_fixed_point (=) sqrt 10. = 1.
+let computed_fixed_point_test3 =
+  ((computed_fixed_point (fun x y -> abs_float (x -. y) < 1.)
+			 (fun x -> x /. 2.)
+			 10.)
+   = 1.25)
+
+
+let computed_periodic_point_test0 =
+  computed_periodic_point (=) (fun x -> x / 2) 0 (-1) = -1
+let computed_periodic_point_test1 =
+  computed_periodic_point (=) (fun x -> x *. x -. 1.) 2 0.5 = -1.
+
+let while_away_test1 = while_away ((+) 3) ((>) 10) 0
+
