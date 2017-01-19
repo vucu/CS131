@@ -119,5 +119,5 @@ let rec check_rules good_rules = function
 		else check_rules good_rules t;;	
 
 (* Use computed fixed point to find the complete set of good rules. *)
-let filter_blind_alleys  = function
-	| (start_symbol, rules) -> (start_symbol, check_rules (compute_good_rules ([], rules)) rules);; 
+let filter_blind_alleys (start_symbol, rules) = 
+	(start_symbol, check_rules (compute_good_rules ([], rules)) rules);; 
