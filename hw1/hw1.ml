@@ -104,7 +104,11 @@ let rec check_rhs rhs good_rules =
 let rec core_terminal_set good_rules = function
 	| [] -> good_rules
 	| (a, b)::t -> if (check_rhs b good_rules)
-		then (if (inset a good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
+		then (
+			if (inset a good_rules) 
+			then core_terminal_set good_rules t 
+			else core_terminal_set (a::good_rules) t
+		)
 		else core_terminal_set good_rules t;;
 
 (* Helper function to return the correct function type for computed fixed point. *)
