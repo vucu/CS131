@@ -87,7 +87,8 @@ type ('terminal, 'nonterminal) symbol =
 	| N of 'nonterminal;;
 
 (* Check if subrule is good *)
-let is_subrule_good good_rules = function
+let is_subrule_good s good_rules = 
+	match s with
 	| T s -> true
 	| N s -> subset [s] good_rules;;
 
@@ -96,7 +97,7 @@ let rec is_rule_good rhs good_rules =
 	match rhs with
 	| [] -> true
 	(* Check that each subrule is terminal *)
-	| h::t -> if (is_subrule_good good_rules h) 
+	| h::t -> if (is_subrule_good h good_rules) 
 		then is_rule_good t good_rules
 		else false;;
 
