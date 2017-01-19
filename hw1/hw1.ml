@@ -96,7 +96,6 @@ let check_symbol s good_rules =
 let rec check_rhs rhs good_rules = 
 	match rhs with
 	| [] -> true
-	(* Check that each subrule is terminal *)
 	| h::t -> if (check_symbol h good_rules) 
 		then check_rhs t good_rules
 		else false;;
