@@ -57,3 +57,7 @@ let computed_periodic_point_test1 =
 
 let while_away_test1 = while_away ((+) 3) ((>) 10) 0
 
+let rle_decode_test1 = rle_decode [2,0; 1,6] 
+let rle_decode_test2 = rle_decode [3,"w"; 1,"x"; 0,"y"; 2,"z"]
+
+

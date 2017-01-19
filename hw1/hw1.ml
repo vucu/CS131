@@ -66,4 +66,15 @@ let rec while_away s p x =
 	if p x
 	then x :: while_away s p (s x)
 	else [];;
+
 	
+let rec rle_expand r e =
+	if r = 0
+	then []
+	else e :: rle_expand (r-1) e;;
+	
+let rec rle_decode lp = 
+	match lp with
+	| [] -> []
+	| (h1, h2) :: t -> (rle_expand h1 h2) @ (rle_decode t)
+						
