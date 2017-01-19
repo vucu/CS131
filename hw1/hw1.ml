@@ -101,23 +101,25 @@ let rec check_rhs rhs terminables =
 		else false;;
 
 (* Find the set of terminal (good) symbols. *)
-let rec core_terminal_set terminables = function
+let rec core_terminal_set rules terminables = 
+	match rules with
 	| [] -> terminables
 	| (a, b)::t -> if (check_rhs b terminables)
 		then (
 			if (inset a terminables) 
-			then core_terminal_set terminables t 
-			else core_terminal_set (a::terminables) t
+			then core_terminal_set t terminables  
+			else core_terminal_set t (a::terminables) 
 		)
-		else core_terminal_set terminables t;;
+		else core_terminal_set t terminables;;
 
 (* Helper function to return the correct function type for computed fixed point. *)
 let fixed_point_core_set (terminables, rules) =
-	((core_terminal_set terminables rules), rules);;
+	((core_terminal_set rules terminables), rules);;
 
 let equal_fst (sA, rA) (sB, rB) = 
 	equal_sets sA sB
 
+(* Get all terminables *)
 let get_terminables rules =  
 	fst(computed_fixed_point equal_fst fixed_point_core_set ([], rules));;
 
