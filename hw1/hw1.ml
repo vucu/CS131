@@ -90,7 +90,7 @@ type ('terminal, 'nonterminal) symbol =
 let is_subrule_good s good_rules = 
 	match s with
 	| T s -> true
-	| N s -> subset [s] good_rules;;
+	| N s -> inset s good_rules;;
 
 (* Rule: a b pair where a is a non-terminal symbol and b is list of subrules. *)
 let rec is_rule_good rhs good_rules = 
@@ -105,7 +105,7 @@ let rec is_rule_good rhs good_rules =
 let rec core_terminal_set good_rules = function
 	| [] -> good_rules
 	| (a, b)::t -> if (is_rule_good b good_rules)
-		then (if (subset [a] good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
+		then (if (inset a good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
 		else core_terminal_set good_rules t;;
 
 (* Helper function to return the correct function type for computed fixed point. *)
