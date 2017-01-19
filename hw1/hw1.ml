@@ -86,13 +86,13 @@ type ('terminal, 'nonterminal) symbol =
 	| T of 'terminal 
 	| N of 'nonterminal;;
 
-(* Check if subrule is good *)
+(* Check for terminable symbol *)
 let check_symbol s good_rules = 
 	match s with
 	| T s -> true
 	| N s -> inset s good_rules;;
 
-(* Rule: a b pair where a is a non-terminal symbol and b is list of subrules. *)
+(* Check for terminable rhs *)
 let rec check_rhs rhs good_rules = 
 	match rhs with
 	| [] -> true
@@ -115,7 +115,7 @@ let fixed_point_core_set (good_rules, rules) =
 let compute_good_rules (good_rules, rules) =  
 	fst(computed_fixed_point (fun (a, _) (b, _) -> equal_sets a b) fixed_point_core_set ([], rules));;
 
-(* If rule is good, include in return, else ignore. *)
+(* Check for terminable rules *)
 let rec check_rules rules good_rules = 
 	match rules with
 	| [] -> []
