@@ -115,8 +115,11 @@ let rec core_terminal_set good_rules = function
 let fixed_point_core_set (good_rules, rules) =
 	((core_terminal_set good_rules rules), rules);;
 
+let equal_grammar (sA, rA) (sB, rB) = 
+	equal_sets sA sB
+
 let compute_good_rules (good_rules, rules) =  
-	fst(computed_fixed_point (fun (a, _) (b, _) -> equal_sets a b) fixed_point_core_set ([], rules));;
+	fst(computed_fixed_point equal_grammar fixed_point_core_set ([], rules));;
 
 (* Check for terminable rules *)
 let rec check_rules rules good_rules = 
