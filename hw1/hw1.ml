@@ -101,27 +101,26 @@ let rec check_rhs rhs terminables =
 		else false;;
 
 (* Find terminables. *)
-let rec core_terminal_set rules terminablesAcc = 
+let rec filter rules x = 
 	match rules with
-	| [] -> terminablesAcc
-	| (s, rhs)::t -> if (check_rhs rhs terminablesAcc)
+	| [] -> x
+	| (s, rhs)::t -> if (check_rhs rhs x)
 		then (
-			if (inset s terminablesAcc) 
-			then core_terminal_set t terminablesAcc  
-			else core_terminal_set t (s::terminablesAcc) 
+			if (inset s x) 
+			then filter t x  
+			else filter t (s::x) 
 		)
-		else core_terminal_set t terminablesAcc;;
+		else filter t x;;
 
-(* Helper function to return the correct function type for computed fixed point. *)
-let fixed_point_core_set (terminables, rules) =
-	((core_terminal_set rules terminables), rules);;
+let func (x, rules) =
+	((filter rules x), rules);;
 
 let equal_fst (sA, rA) (sB, rB) = 
 	equal_sets sA sB
 
 (* Get all terminables *)
 let get_terminables rules =  
-	fst(computed_fixed_point equal_fst fixed_point_core_set ([], rules));;
+	fst(computed_fixed_point equal_fst func ([], rules));;
 
 (* Check for terminable rules *)
 let rec check_rules rules terminables = 
