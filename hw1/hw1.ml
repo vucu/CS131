@@ -92,15 +92,18 @@ let is_subrule_good good_rules = function
 	| N s -> subset [s] good_rules;;
 
 (* Rule: a b pair where a is a non-terminal symbol and b is list of subrules. *)
-let rec is_rule_good good_rules = function
+let rec is_rule_good rhs good_rules = 
+	match rhs with
 	| [] -> true
 	(* Check that each subrule is terminal *)
-	| h::t -> if (is_subrule_good good_rules h) then is_rule_good good_rules t else false;;
+	| h::t -> if (is_subrule_good good_rules h) 
+		then is_rule_good t good_rules
+		else false;;
 
 (* Find the set of terminal (good) symbols. *)
 let rec core_terminal_set good_rules = function
 	| [] -> good_rules
-	| (a, b)::t -> if (is_rule_good good_rules b)
+	| (a, b)::t -> if (is_rule_good b good_rules)
 		then (if (subset [a] good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
 		else core_terminal_set good_rules t;;
 
@@ -115,7 +118,7 @@ let compute_good_rules (good_rules, rules) =
 let rec check_rules rules good_rules = 
 	match rules with
 	| [] -> []
-	| (a, b)::t -> if (is_rule_good good_rules b) 
+	| (a, b)::t -> if (is_rule_good b good_rules) 
 		then (a, b)::(check_rules t good_rules) 
 		else check_rules t good_rules;;	
 
