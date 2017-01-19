@@ -100,20 +100,20 @@ let rec check_rhs rhs terminables =
 		then check_rhs t terminables
 		else false;;
 
-(* Find terminables. *)
-let rec filter rules x = 
+(* Accumulate rules to x *)
+let rec accumulate rules x = 
 	match rules with
 	| [] -> x
 	| (s, rhs)::t -> if (check_rhs rhs x)
 		then (
 			if (inset s x) 
-			then filter t x  
-			else filter t (s::x) 
+			then accumulate t x  
+			else accumulate t (s::x) 
 		)
-		else filter t x;;
+		else accumulate t x;;
 
 let func (x, rules) =
-	((filter rules x), rules);;
+	((accumulate rules x), rules);;
 
 let equal_fst (sA, rA) (sB, rB) = 
 	equal_sets sA sB
