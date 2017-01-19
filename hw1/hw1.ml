@@ -112,12 +112,13 @@ let compute_good_rules (good_rules, rules) =
 	fst(computed_fixed_point (fun (a, _) (b, _) -> equal_sets a b) fixed_point_core_set ([], rules));;
 
 (* If rule is good, include in return, else ignore. *)
-let rec check_rules good_rules = function
+let rec check_rules rules good_rules = 
+	match rules with
 	| [] -> []
 	| (a, b)::t -> if (is_rule_good good_rules b) 
-		then (a, b)::(check_rules good_rules t) 
-		else check_rules good_rules t;;	
+		then (a, b)::(check_rules t good_rules) 
+		else check_rules t good_rules;;	
 
 (* Use computed fixed point to find the complete set of good rules. *)
-let filter_blind_alleys (start_symbol, rules) = 
-	(start_symbol, check_rules (compute_good_rules ([], rules)) rules);; 
+let filter_blind_alleys (start, rules) = 
+	(start, check_rules rules (compute_good_rules ([], rules)));; 
