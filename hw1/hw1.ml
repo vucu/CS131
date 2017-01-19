@@ -86,38 +86,49 @@ type ('terminal, 'nonterminal) symbol =
 	| T of 'terminal 
 	| N of 'nonterminal;;
 
-(* Check if subrule is good *)
-let is_subrule_good good_rules = function
+(* Check for terminable symbol *)
+let check_symbol s terminables = 
+	match s with
 	| T s -> true
-	| N s -> subset [s] good_rules;;
+	| N s -> inset s terminables;;
 
-(* Rule: a b pair where a is a non-terminal symbol and b is list of subrules. *)
-let rec is_rule_good good_rules = function
+(* Check for terminable rhs *)
+let rec check_rhs rhs terminables = 
+	match rhs with
 	| [] -> true
-	(* Check that each subrule is terminal *)
-	| h::t -> if (is_subrule_good good_rules h) then is_rule_good good_rules t else false;;
+	| h::t -> if (check_symbol h terminables) 
+		then check_rhs t terminables
+		else false;;
 
-(* Find the set of terminal (good) symbols. *)
-let rec core_terminal_set good_rules = function
-	| [] -> good_rules
-	| (a, b)::t -> if (is_rule_good good_rules b)
-		then (if (subset [a] good_rules) then core_terminal_set good_rules t else core_terminal_set (a::good_rules) t)
-		else core_terminal_set good_rules t;;
+(* Accumulate rules to x *)
+let rec accumulate rules x = 
+	match rules with
+	| [] -> x
+	| (s, rhs)::t -> if (check_rhs rhs x)
+		then (
+			if (inset s x) 
+			then accumulate t x  
+			else accumulate t (s::x) 
+		)
+		else accumulate t x;;
 
-(* Helper function to return the correct function type for computed fixed point. *)
-let fixed_point_core_set (good_rules, rules) =
-	((core_terminal_set good_rules rules), rules);;
+let func (x, rules) =
+	((accumulate rules x), rules);;
 
-let compute_good_rules (good_rules, rules) =  
-	fst(computed_fixed_point (fun (a, _) (b, _) -> equal_sets a b) fixed_point_core_set ([], rules));;
+let equal_fst (sA, rA) (sB, rB) = 
+	equal_sets sA sB
 
-(* If rule is good, include in return, else ignore. *)
-let rec check_rules good_rules = function
+(* Get all terminables *)
+let get_terminables rules =  
+	fst(computed_fixed_point equal_fst func ([], rules));;
+
+(* Check for terminable rules *)
+let rec check_rules rules terminables = 
+	match rules with
 	| [] -> []
-	| (a, b)::t -> if (is_rule_good good_rules b) 
-		then (a, b)::(check_rules good_rules t) 
-		else check_rules good_rules t;;	
+	| (symbol, rhs)::t -> if (check_rhs rhs terminables) 
+		then (symbol, rhs)::(check_rules t terminables) 
+		else check_rules t terminables;;	
 
-(* Use computed fixed point to find the complete set of good rules. *)
-let filter_blind_alleys  = function
-	| (start_symbol, rules) -> (start_symbol, check_rules (compute_good_rules ([], rules)) rules);; 
+let filter_blind_alleys (start, rules) = 
+	(start, check_rules rules (get_terminables rules));; 
