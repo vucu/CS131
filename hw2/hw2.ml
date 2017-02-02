@@ -18,7 +18,7 @@ let convert_grammar gram1 =
 	| (s, rules) -> (s, (fun x -> (derive rules x)))
 	
 	
-(* patse_prefix *)
+(* parse_prefix *)
 let rec make_a_matcher rules rule accept derivation frag = 
 	match rule with 
 	| [] -> accept derivation frag
