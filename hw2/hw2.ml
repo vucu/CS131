@@ -18,8 +18,8 @@ let convert_grammar gram1 =
 	| (s, rules) -> (s, (fun x -> (derive rules x)))
 	
 	
-(* parse_prefix *)
-let rec make_a_matcher rules rule accept derivation frag = 
+(* patse_prefix *)
+let rec make_a_matcher rules rule accept frag derivation = 
 	match rule with 
 	| [] -> accept derivation frag
 	| head :: tail -> 
@@ -31,7 +31,7 @@ let rec make_a_matcher rules rule accept derivation frag =
 			| [] -> None
 			| f_head :: f_tail -> 
 				if (f_head = terminal) then 
-					(make_a_matcher rules tail accept derivation f_tail)
+					(make_a_matcher rules tail accept frag_tail derivation)
 				else
 					None
 		)
@@ -44,7 +44,7 @@ and make_or_matcher rules matching_rules lhs accept frag derivation =
 	| [] -> None
 	| head :: tail -> 
 	(
-		match make_a_matcher rules head accept (derivation @ [(lhs, head)]) frag with
+		match make_a_matcher rules head accept frag (derivation @ [(lhs, head)]) with
 		| None -> make_or_matcher rules tail lhs accept frag derivation
 		| any -> any 
 	)
