@@ -33,15 +33,13 @@ let rec make_concat_matcher rules rule accept derivation frag =
 			match frag with 
 			| [] -> None
 			| frag_head :: frag_tail -> 
-			(
 				if (frag_head = terminal) then 
 					(make_concat_matcher rules tail accept derivation frag_tail)
 				else
 					None
-				)
-			)
+		)
 		| N(nonterminal) -> 
-			(make_or_matcher rules (rules nonterminal) nonterminal (make_concat_matcher rules tail accept) frag derivation)
+			make_or_matcher rules (rules nonterminal) nonterminal (make_concat_matcher rules tail accept) frag derivation
 	)
 
 (*
@@ -53,8 +51,7 @@ and make_or_matcher rules matching_rules lhs accept frag derivation =
 	| head :: tail -> 
 	(
 		match make_concat_matcher rules head accept (derivation @ [(lhs, head)]) frag with
-		| None -> 
-			(make_or_matcher rules tail lhs accept frag derivation)
+		| None -> make_or_matcher rules tail lhs accept frag derivation
 		| any -> any 
 	)
 
