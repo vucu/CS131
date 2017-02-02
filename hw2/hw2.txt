@@ -1,0 +1,7 @@
+Design:
+In the first design, I think of simply iterating through all rules, and just check
+it with the acceptor. If it's accepted, pass, else check the next rules until it 
+finds an accepted rule.
+It works only for terminal-only grammar, but it's an idea.
+
+The idea: We start with 
