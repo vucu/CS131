@@ -1,0 +1,51 @@
+Design:
+In the first design, I think of simply iterating through all rules, and just check
+it with the acceptor. If it's accepted, pass, else check the next rules until it 
+finds an accepted rule.
+It works only for terminal-only grammar, but it's an idea.
+
+How about nonterminal?
+The idea: We start with the start symbol, then we find the matching rules for the
+start symbols, and iterating all the matching rules until we find an accepted 
+matching rules.
+
+From that ideas, I implement a function similar to make_or_matcher as discussed in
+the discussion slides. 
+It iterates through all matching rules, until it find an accepted matching rules.
+So we have a list of rules, and we consider each rule. Does this rule has a match?
+
+A rule is very likely to have a list of symbols. In the lecture, we have the concatenation
+rule:
+S -> H T
+If we know the matcher for H and T, called mH, mT, we can find the matcher mS for S.
+
+So now we know the smallest problem is: 
+- Find the matcher for a single terminal symbol
+- Find the matcher for a single non-terminal symbol
+
+- Find the matcher for a single terminal symbol (trivial case): 
+It simply match that terminal symbol with the first symbol of the fragment.
+Note that we don't need to care about it, since it's the job of the acceptor.
+- Find the matcher for a single non-terminal symbol: 
+The same as finding the matcher for start symbol. We can reuse make_or_matcher for 
+this symbol.
+
+Now we need to find the matcher for S (make_a_matcher). 
+mS = a -> l -> mH a' l
+fun a' = l -> mT a l
+(as in the lecture)
+We apply this formula, by iterating the symbols in the right hand side of S, from left
+to right, and call different recursive function based on whether H is terminal or 
+non-terminal. 
+If H is terminal, mS = a -> l -> mT a l, applying to the tail of the fragment.
+If H is non-terminal, mH = make_or_matcher. 
+Note that mT is the matcher for the tail of S. mT = make_a_matcher. As from the formula,
+the acceptor is obtained by applying make_a_matcher to the tail.
+
+Implementation: 
+- First implementation has the function for make_a_matcher, make_or_matcher, 
+make_terminal_matcher, make_nonterminal_matcher. Very buggy. 
+- Later design reduces it to make_a_matcher, make_or_matcher, and it seems 
+to work better.
+
+Weakness: Might cause problems when the grammar is blind-alley, or ambigious.
