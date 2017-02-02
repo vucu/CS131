@@ -1,25 +1,17 @@
-type awksub_nonterminals =
-  | Expr | Term | Lvalue | Incrop | Binop | Num
-
-let awksub_rules_hw1 =
-   [Expr, [T"("; N Expr; T")"];
-    Expr, [N Num];
-    Lvalue, [T"$"; N Expr];
-    Incrop, [T"++"];
-    Incrop, [T"--"];
-    Binop, [T"+"];
-    Binop, [T"-"];
-    Num, [T"0"]]
-
-let test_convert_grammar_1 = ((snd (convert_grammar (Expr, awksub_rules_hw1))) Expr = [[T"("; N Expr; T")"]; [N Num]])
-let test_convert_grammar_2 = ((snd (convert_grammar (Expr, awksub_rules_hw1))) Lvalue = [[T"$"; N Expr]])
-let test_convert_grammar_3 = ((snd (convert_grammar (Expr, awksub_rules_hw1))) Num = [[T"0"]])
-
-
 let accept_all derivation string = Some (derivation, string)
 let accept_empty_suffix derivation = function
    | [] -> Some (derivation, [])
    | _ -> None
+
+(* An example grammar for a small subset of Awk, derived from but not
+   identical to the grammar in
+   <http://web.cs.ucla.edu/classes/winter06/cs132/hw/hw1.html>.
+   Note that this grammar is not the same as Homework 1; it is
+   instead the same as the grammar under "Theoretical background"
+   above.  *)
+
+type awksub_nonterminals =
+  | Expr | Term | Lvalue | Incrop | Binop | Num
 
 let awkish_grammar =
   (Expr,
@@ -120,109 +112,36 @@ let accept_only_non_lvalues rules frag =
   if contains_lvalue rules
   then None
   else Some (rules, frag)
+  
+type xyz_nonterminals =
+	| S | X | Y | Num | UnaryOp | Letter | Special | CPlusPlus
+;;
 
-let test5 =
-  ((parse_prefix awkish_grammar accept_only_non_lvalues
-      ["3"; "-"; "4"; "+"; "$"; "5"; "-"; "6"])
-   = Some
-      ([(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"]);
-	(Binop, [T "-"]); (Expr, [N Term]); (Term, [N Num]); (Num, [T "4"])],
-       ["+"; "$"; "5"; "-"; "6"]))
+let xyz_grammar = S,
+	[S, [N X; T"[]"; N S];
+	S, [N Y];
+	S, [N X];
+	X, [N Num];
+	X, [N UnaryOp];
+	X, [N Letter];
+	X, [N Special];
+	X, [N CPlusPlus];
+	Y, [T"yyyyy"];
+	Num, [T"7"];
+	UnaryOp, [T"-"];
+	Letter, [T"k"];
+	Special, [T"@"];
+	CPlusPlus, [T"C++"]]
+;;
 
-(* Added test cases *)
+let xyz_new_grammar = convert_grammar xyz_grammar;;
 
-type language_of_bool_nonterminals = Expression | ElseClause
+let test_1 = parse_prefix xyz_new_grammar accept_all ["C++"] =
+	Some ([(S, [N X]); (X, [N CPlusPlus]); (CPlusPlus, [T "C++"])], []);;
 
-(* An ambiguous version of language_of_bool; testing parser behavior in an ambiguous grammar definition with blind alley rules *)
-let ambiguous_language_of_bool = (Expression, function 
-  | Expression -> [[T "if"; N Expression; T "then"; N Expression; T "else"; N Expression];
-             [N ElseClause]; (* Blind alley but not left recursive *)
-             [T "if"; N Expression; T "then"; N Expression]; (* ambiguous *)
-             [T "True"];
-             [T "False"]]
-  | ElseClause -> [[T "else"; N ElseClause]])
-
-let test_1 = ((parse_prefix ambiguous_language_of_bool accept_all 
-  ["if";
-     "if";"True";"then";
-       "False";
-     "else";
-       "True";
-   "then";
-     "if";
-       "False";
-     "then";
-       "False";
-     "else";
-       "if";"False";"then";
-         "True";
-       "else";
-         "False"]) = Some ([
-     (Expression, [T "if"; N Expression; T "then"; N Expression; T "else"; N Expression]);
-     (Expression, [T "if"; N Expression; T "then"; N Expression; T "else"; N Expression]);
-     (Expression, [T "True"]); (Expression, [T "False"]); (Expression, [T "True"]);
-     (Expression, [T "if"; N Expression; T "then"; N Expression; T "else"; N Expression]);
-     (Expression, [T "False"]); (Expression, [T "False"]);
-     (Expression, [T "if"; N Expression; T "then"; N Expression]); (Expression, [T "False"]);
-     (Expression, [T "True"]); (Expression, [T "False"])],
-    []))
-
-(* 
-Because of ambiguity, the parser thinks of the above as 
-  ["if";
-     "if";"True";"then";
-       "False";
-     "else";
-       "True";
-   "then";
-     "if";"False";"then";
-       "False";
-     "else";
-       "if";"False";"then";"True";
-   "else";
-     "False"]
-which is still the correct behavior; The parser still behaves Ok in an ambiguous grammar
-*)
-
-(* An unambiguous version of language_of_bool; testing S -> epsilon but without the blind alley rules above; tries accept_empty_suffix for fun *)
-let unambiguous_language_of_bool = (Expression, function 
-  | Expression -> [[T "if"; N Expression; T "then"; N Expression; N ElseClause];
-             [T "True"];
-             [T "False"]]
-  | ElseClause -> [[T "else"; N Expression];
-             []])
-
-let test_2 = ((parse_prefix unambiguous_language_of_bool accept_empty_suffix 
-  ["if";
-     "if";"True";"then";
-       "False";
-     "else";
-       "True";
-   "then";
-     "if";
-       "False";
-     "then";
-       "False";
-     "else";
-       "if";"False";"then";
-         "True";
-       "else";
-         "False"]) = Some ([
-     (Expression,
-      [T "if"; N Expression; T "then"; N Expression; N ElseClause]);
-     (Expression,
-      [T "if"; N Expression; T "then"; N Expression; N ElseClause]);
-     (Expression, [T "True"]); (Expression, [T "False"]);
-     (ElseClause, [T "else"; N Expression]); (Expression, [T "True"]);
-     (Expression,
-      [T "if"; N Expression; T "then"; N Expression; N ElseClause]);
-     (Expression, [T "False"]); (Expression, [T "False"]);
-     (ElseClause, [T "else"; N Expression]);
-     (Expression,
-      [T "if"; N Expression; T "then"; N Expression; N ElseClause]);
-     (Expression, [T "False"]); (Expression, [T "True"]);
-     (ElseClause, [T "else"; N Expression]); (Expression, [T "False"]);
-     (ElseClause, [])],
-    []))
-
-(* Ambiguity is removed,  *)
+let test_2 = parse_prefix xyz_new_grammar accept_all ["@"; "[]"; "-"; "[]"; "yyyyy"] = Some
+   ([(S, [N X; T "[]"; N S]); (X, [N Special]); (Special, [T "@"]);
+     (S, [N X; T "[]"; N S]); (X, [N UnaryOp]); (UnaryOp, [T "-"]);
+     (S, [N Y]); (Y, [T "yyyyy"])],
+    [])
+;;
