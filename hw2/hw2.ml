@@ -22,12 +22,12 @@ let convert_grammar gram1 =
 (*
 	Concat Rule
 *)
-let rec make_concat_matcher all_rules rule acceptor derivation frag = 
+let rec make_concat_matcher rules rule accept derivation frag = 
 	match rule with 
-	| [] -> acceptor derivation frag
-	| rule_head :: rule_tail -> 
+	| [] -> accept derivation frag
+	| head :: tail -> 
 	(
-		match rule_head with 
+		match head with 
 		| T(terminal) -> 
 		(
 			match frag with 
@@ -35,29 +35,29 @@ let rec make_concat_matcher all_rules rule acceptor derivation frag =
 			| frag_head :: frag_tail -> 
 			(
 				if (frag_head = terminal) then 
-					(make_concat_matcher all_rules rule_tail acceptor derivation frag_tail)
+					(make_concat_matcher rules tail accept derivation frag_tail)
 				else
 					None
 				)
 			)
 		| N(nonterminal) -> 
-			(make_or_matcher all_rules (all_rules nonterminal) nonterminal (make_concat_matcher all_rules rule_tail acceptor) frag derivation)
+			(make_or_matcher rules (rules nonterminal) nonterminal (make_concat_matcher rules tail accept) frag derivation)
 	)
 
 (*
 	OR Rule
 *)
-and make_or_matcher all_rules matching_rules lhs acceptor frag derivation = 
+and make_or_matcher rules matching_rules lhs accept frag derivation = 
 	match matching_rules with
 	| [] -> None
-	| rules_head :: rules_tail -> 
+	| head :: tail -> 
 	(
-		match make_concat_matcher all_rules rules_head acceptor (derivation @ [(lhs, rules_head)]) frag with
+		match make_concat_matcher rules head accept (derivation @ [(lhs, head)]) frag with
 		| None -> 
-			(make_or_matcher all_rules rules_tail lhs acceptor frag derivation)
+			(make_or_matcher rules tail lhs accept frag derivation)
 		| any -> any 
 	)
 
-let parse_prefix grammar acceptor frag = 
+let parse_prefix grammar accept frag = 
   match grammar with
-    | (start_symbol, rules) -> make_or_matcher rules (rules start_symbol) start_symbol acceptor frag []
+    | (start_symbol, rules) -> make_or_matcher rules (rules start_symbol) start_symbol accept frag []
