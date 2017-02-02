@@ -50,5 +50,5 @@ and make_or_matcher rules matching_rules lhs accept frag derivation =
 	)
 
 let parse_prefix grammar accept frag = 
-  match grammar with
-    | (start, rules) -> make_or_matcher rules (rules start) start accept frag []
+	match grammar with
+	| (start, rules) -> make_or_matcher rules (rules start) start accept frag []
