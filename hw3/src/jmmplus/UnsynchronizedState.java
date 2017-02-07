@@ -1,6 +1,6 @@
 package jmmplus;
 
-public class UnsynchronizedState {
+public class UnsynchronizedState implements State {
 	private byte[] value;
 	private byte maxval;
 

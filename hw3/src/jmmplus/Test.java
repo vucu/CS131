@@ -3,7 +3,7 @@ package jmmplus;
 public class Test {
 	public static void main(String args[]) {
 		// Test arguments here
-		String[] argsCustom = {"Synchronized", "8", "1000000"
+		String[] argsCustom = {"Unsynchronized", "8", "1000000"
 				, "6", "5", "6", "3", "0", "3"};
 		
 		if (argsCustom.length < 3)
@@ -21,6 +21,8 @@ public class Test {
 				s = new NullState(stateArg, maxval);
 			else if (argsCustom[0].equals("Synchronized"))
 				s = new SynchronizedState(stateArg, maxval);
+			else if (argsCustom[0].equals("Unsynchronized"))
+				s = new UnsynchronizedState(stateArg, maxval);
 			else
 				throw new Exception(argsCustom[0]);
 			dowork(nThreads, nTransitions, s);
