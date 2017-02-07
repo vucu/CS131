@@ -2,50 +2,44 @@ package jmmplus;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 class GetNSetState implements State {
-    private byte maxval;
-    private AtomicIntegerArray atomicArray;
+	private AtomicIntegerArray value;
+	private byte maxval;
 
-	// Helper class to create AtomicIntegerArray from byte array
-	// With an intermediate int array because the constructor only
-	// takes in an int array
 	private void init(byte[] v){
-    	int[] intArray = new int[v.length];
-    	for(int i = 0; i < v.length; i++){
-    		intArray[i] = v[i];
+		int[] a = new int[v.length];
+		for(int i = 0; i < v.length; i++){
+			a[i] = v[i];
 		}
-		atomicArray = new AtomicIntegerArray(intArray);
+		value = new AtomicIntegerArray(a);
 	}
 
 
-    GetNSetState(byte[] v) { 
-    	maxval = 127;
-    	init(v);
-    }
-
-    GetNSetState(byte[] v, byte m) { 
-    	maxval = m;
-    	init(v);
-    }
-
-    public int size() { return atomicArray.length(); }
-
-	// Downcast the array of ints in the AtomicIntegerArray to bytes
-    public byte[] current() { 
-		byte[] ret = new byte[atomicArray.length()];
-		for(int i = 0; i < ret.length; i++){
-			ret[i] = (byte) atomicArray.get(i);
-		}
-		return ret;
+	GetNSetState(byte[] v) { 
+		maxval = 127;
+		init(v);
 	}
 
-	// Use the AtomicIntegerArray to get and set the values
-	// of the array in an atomic manner
+	GetNSetState(byte[] v, byte m) { 
+		maxval = m;
+		init(v);
+	}
+
+	public int size() { return value.length(); }
+
+	public byte[] current() { 
+		byte[] a = new byte[value.length()];
+		for(int i = 0; i < a.length; i++){
+			a[i] = (byte) value.get(i);
+		}
+		return a;
+	}
+
 	public boolean swap(int i, int j) {
-		if (atomicArray.get(i) <= 0 || atomicArray.get(j) >= maxval) {
+		if (value.get(i) <= 0 || value.get(j) >= maxval) {
 			return false;
 		}
-		atomicArray.getAndDecrement(i);
-		atomicArray.getAndIncrement(j);
+		value.getAndDecrement(i);
+		value.getAndIncrement(j);
 		return true;
 	}
 }
