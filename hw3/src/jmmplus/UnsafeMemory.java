@@ -1,6 +1,19 @@
 package jmmplus;
 
+import java.util.Random;
+
 class UnsafeMemory {
+	private static int ARRAY_SIZE = 650;
+
+	private static byte[] arrayGeneration(byte max){
+		Random randGenerator = new Random();
+		byte[] ret = new byte[ARRAY_SIZE];
+		for(int i = 0; i < ret.length; i++){
+			ret[i] = (byte) randGenerator.nextInt((int)max);
+		}
+		return ret;
+	}
+
 	public static void main(String args[]) {
 		if (args.length < 3)
 			usage(null);
@@ -8,15 +21,29 @@ class UnsafeMemory {
 			int nThreads = parseInt (args[1], 1, Integer.MAX_VALUE);
 			int nTransitions = parseInt (args[2], 0, Integer.MAX_VALUE);
 			byte maxval = (byte) parseInt (args[3], 0, 127);
-			byte[] value = new byte[args.length - 4];
-			for (int i = 4; i < args.length; i++)
-				value[i - 4] = (byte) parseInt (args[i], 0, maxval);
+			byte[] value;
+			if(args.length < 5){
+				value = arrayGeneration(maxval);
+			} else {
+				value = new byte[args.length - 4];
+				for (int i = 4; i < args.length; i++)
+					value[i - 4] = (byte) parseInt (args[i], 0, maxval);
+			}
+
 			byte[] stateArg = value.clone();
 			State s;
 			if (args[0].equals("Null"))
 				s = new NullState(stateArg, maxval);
 			else if (args[0].equals("Synchronized"))
 				s = new SynchronizedState(stateArg, maxval);
+			else if (args[0].equals("Unsynchronized"))
+				s = new UnsynchronizedState(stateArg, maxval);
+			else if (args[0].equals("GetNSet"))
+				s = new GetNSetState(stateArg, maxval);
+			else if (args[0].equals("BetterSafe"))
+				s = new BetterSafeState(stateArg, maxval);
+			else if (args[0].equals("BetterSorry"))
+				s = new BetterSorryState(stateArg, maxval);
 			else
 				throw new Exception(args[0]);
 			dowork(nThreads, nTransitions, s);

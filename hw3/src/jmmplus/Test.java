@@ -1,28 +1,55 @@
 package jmmplus;
 
+import java.util.Random;
+
 public class Test {
+	private static int ARRAY_SIZE = 650;
+
+	private static byte[] arrayGeneration(byte max){
+		Random randGenerator = new Random();
+		byte[] ret = new byte[ARRAY_SIZE];
+		for(int i = 0; i < ret.length; i++){
+			ret[i] = (byte) randGenerator.nextInt((int)max);
+		}
+		return ret;
+	}
+
 	public static void main(String args[]) {
 		// Test arguments here
 		String[] argsCustom = {"Synchronized", "8", "1000000"
-				, "6", "5", "6", "3", "0", "3"};
-		
+				, "6"};
+
 		if (argsCustom.length < 3)
 			usage(null);
 		try {
 			int nThreads = parseInt (argsCustom[1], 1, Integer.MAX_VALUE);
 			int nTransitions = parseInt (argsCustom[2], 0, Integer.MAX_VALUE);
 			byte maxval = (byte) parseInt (argsCustom[3], 0, 127);
-			byte[] value = new byte[argsCustom.length - 4];
-			for (int i = 4; i < argsCustom.length; i++)
-				value[i - 4] = (byte) parseInt (argsCustom[i], 0, maxval);
+			byte[] value;
+			if(argsCustom.length < 5){
+				System.out.println("Custom Array");
+				value = arrayGeneration(maxval);
+			} else {
+				value = new byte[argsCustom.length - 4];
+				for (int i = 4; i < argsCustom.length; i++)
+					value[i - 4] = (byte) parseInt (argsCustom[i], 0, maxval);
+			}
 			byte[] stateArg = value.clone();
 			State s;
 			if (argsCustom[0].equals("Null"))
 				s = new NullState(stateArg, maxval);
 			else if (argsCustom[0].equals("Synchronized"))
 				s = new SynchronizedState(stateArg, maxval);
+			else if (argsCustom[0].equals("Unsynchronized"))
+				s = new UnsynchronizedState(stateArg, maxval);
+			else if (argsCustom[0].equals("GetNSet"))
+				s = new GetNSetState(stateArg, maxval);
+			else if (argsCustom[0].equals("BetterSafe"))
+				s = new BetterSafeState(stateArg, maxval);
+			else if (argsCustom[0].equals("BetterSorry"))
+				s = new BetterSorryState(stateArg, maxval);
 			else
-				throw new Exception(argsCustom[0]);
+				throw new Exception(args[0]);
 			dowork(nThreads, nTransitions, s);
 			test(value, s.current(), maxval);
 			System.exit (0);
