@@ -1,8 +1,8 @@
 % Implement signal_morse
 signal_morse([], []).
-signal_morse([H | T],M):- 
+signal_morse([H | T], Morse):- 
 	break([H | T], B), 
-	run_morse(B, M).
+	run_morse(B, Morse).
 
 % break to list of 1s and 0s
 break([], []).
@@ -33,7 +33,7 @@ run_morse([[0,0,0,0,0 | _] | Other], ['#' | Remain]):-
 	run_morse(Other, Remain).
 	
 
-% Implement signal_message
+% Morse table
 morse(a, [.,-]).           % A
 morse(b, [-,.,.,.]).	   % B
 morse(c, [-,.,-,.]).	   % C
@@ -93,3 +93,5 @@ morse(as, [.,-,.,.,.]).          % AS (wait A Second)
 morse(ct, [-,.,-,.,-]).          % CT (starting signal, Copy This)
 morse(sk, [.,.,.,-,.,-]).        % SK (end of work, Silent Key)
 morse(sn, [.,.,.,-,.]).          % SN (understood, Sho' 'Nuff)
+
+
