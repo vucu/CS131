@@ -1,11 +1,8 @@
-
-% Base case: Empty morse is empty
+% Implement signal_morse
 signal_morse([], []).
-
-% M is the match of the list if ????????
-signal_morse([H|T],M):- 
-	break([H|T], B), 
-	valid(B, M).
+signal_morse([H | T],M):- 
+	break([H | T], B), 
+	run_morse(B, M).
 
 % break to list of 1s and 0s
 break([], []).
@@ -17,4 +14,21 @@ break([First, Second | T], [[First] | Other]) :-
 break([First, First| T], [ [First|T2] | Other] ):-
     break([First | T], [T2 | Other]),
 	!.
+	
+run_morse([], []).
+run_morse([[1] | Other], ['.' | Remain]):- run_morse(Other, Remain).
+run_morse([[1,1] | Other], ['.' | Remain]):- run_morse(Other, Remain).
+run_morse([[1,1] | Other], ['-' | Remain]):- run_morse(Other, Remain).
+run_morse([[1,1,1] | Other], ['-' | Remain]):- run_morse(Other, Remain).
+run_morse([[1,1,1 | _] | Other], ['-' | Remain]):- 
+	run_morse(Other, Remain).
+run_morse([[0] | Other], Remain):- run_morse(Other, Remain).
+run_morse([[0,0] | Other], Remain):- run_morse(Other, Remain).
+run_morse([[0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
+run_morse([[0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
+run_morse([[0,0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
+run_morse([[0,0,0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
+run_morse([[0,0,0,0,0] | Other], ['#' | Remain]):- run_morse(Other, Remain).
+run_morse([[0,0,0,0,0 | _] | Other], ['#' | Remain]):- 
+	run_morse(Other, Remain).
 	
