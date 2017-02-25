@@ -94,10 +94,6 @@ morse(ct, [-,.,-,.,-]).          % CT (starting signal, Copy This)
 morse(sk, [.,.,.,-,.,-]).        % SK (end of work, Silent Key)
 morse(sn, [.,.,.,-,.]).          % SN (understood, Sho' 'Nuff)
 
-% Use accumulationg to store all morse codes relating to a letter until
-% we come across a carrot after which we append to our final message.
-% The special case for #, we add ourselves to the message as it is not in the
-% dictionary.
 accum([], [], []).
 accum([], A, [M]):- morse(M, A).
 accum(['#' | T], [], ['#' | MT]):- accum(T, [], MT).
@@ -106,11 +102,6 @@ accum(['^' | T], [], M):- accum(T, [], M).
 accum(['^' | T], A, [MH | MT]):- morse(MH, A), accum(T, [], MT).
 accum([H | T], A, M):- append(A, [H], New), accum(T, New, M).
 
-% Remove errors assuming an error is a token (Point 1 from post @217 on piazza)
-% We accumulate the valid letters until a # after which we add to our message, clear the
-% accumulator and continue. If we have an error token, then we check the next token, if
-% it is an error then our accumulator takes the first error token and continues, else we
-% refresh the accumulator, thus discarding all previous values that should be deleted.
 remove_errors_accum([], [], []).
 remove_errors_accum([], A, A).
 remove_errors_accum(['#' | T], [], ['#' | MT]):- remove_errors_accum(T, [], MT).
@@ -119,10 +110,7 @@ remove_errors_accum([error, Other | T], A, M):- =(error, Other), append(A, [erro
 											 remove_errors_accum([Other |T], [], M).
 remove_errors_accum([H | T], A, M):- \=([H],['error']), append(A,[H], New), remove_errors_accum(T, New, M).
 
-% Use an accumulator to fill up the final 'error free' message
 remove_errors(Msg, M):- once(remove_errors_accum(Msg, [], M)).
 
-% Signal message is broken into 1. Generating Morse Code, 2. Generating the word sequence
-% 3. Removing all errors
 signal_message([], []).
 signal_message([H | T], M):- signal_morse([H | T], Morse), accum(Morse, [], Message), remove_errors(Message, M).
