@@ -93,13 +93,14 @@ morse(ct, [-,.,-,.,-]).          % CT (starting signal, Copy This)
 morse(sk, [.,.,.,-,.,-]).        % SK (end of work, Silent Key)
 morse(sn, [.,.,.,-,.]).          % SN (understood, Sho' 'Nuff)
 
-accum([], [], []).
-accum([], A, [M]):- morse(M, A).
-accum(['#' | T], [], ['#' | MT]):- accum(T, [], MT).
-accum(['#' | T], A, [Other, '#' | MT]):- morse(Other, A), accum(T, [], MT).
-accum(['^' | T], [], M):- accum(T, [], M).
-accum(['^' | T], A, [MH | MT]):- morse(MH, A), accum(T, [], MT).
-accum([H | T], A, M):- append(A, [H], New), accum(T, New, M).
+% Convert Morse to Message
+message([], [], []).
+message([], A, [M]):- morse(M, A).
+message(['#' | T], [], ['#' | Tm]):- message(T, [], Tm).
+message(['#' | T], A, [Other, '#' | Tm]):- morse(Other, A), message(T, [], Tm).
+message(['^' | T], [], M):- message(T, [], M).
+message(['^' | T], A, [Hm | Tm]):- morse(Hm, A), message(T, [], Tm).
+message([H | T], A, M):- append(A, [H], Word), message(T, Word, M).
 
 remove_errors_accum([], [], []).
 remove_errors_accum([], A, A).
@@ -112,4 +113,4 @@ remove_errors_accum([H | T], A, M):- \=([H],['error']), append(A,[H], New), remo
 remove_errors(Msg, M):- once(remove_errors_accum(Msg, [], M)).
 
 signal_message([], []).
-signal_message([H | T], M):- signal_morse([H | T], Morse), accum(Morse, [], Message), remove_errors(Message, M).
+signal_message([H | T], M):- signal_morse([H | T], Morse), message(Morse, [], Message), remove_errors(Message, M).
