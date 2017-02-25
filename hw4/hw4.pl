@@ -102,15 +102,32 @@ message(['^' | T], [], M):- message(T, [], M).
 message(['^' | T], A, [Hm | Tm]):- morse(Hm, A), message(T, [], Tm).
 message([H | T], A, M):- append(A, [H], Word), message(T, Word, M).
 
-remove_errors_accum([], [], []).
-remove_errors_accum([], A, A).
-remove_errors_accum(['#' | T], [], ['#' | MT]):- remove_errors_accum(T, [], MT).
-remove_errors_accum(['#' | T], [AH | AT], [AH | MT]):- remove_errors_accum(['#' | T], AT, MT). 
-remove_errors_accum([error, Other | T], A, M):- =(error, Other), append(A, [error], New), remove_errors_accum([Other | T], New, M);
-											 remove_errors_accum([Other |T], [], M).
-remove_errors_accum([H | T], A, M):- \=([H],['error']), append(A,[H], New), remove_errors_accum(T, New, M).
+% Split the list at error
+split([], []).
+split([First], [[First]]).
+split([error, Second | T], [[error] | Other]) :-
+	split([Second | T], Other),
+	!.
+split([First, Second| T], [ [First|T2] | Other] ):-
+    split([Second | T], [T2 | Other]),
+	!.
 
-remove_errors(Msg, M):- once(remove_errors_accum(Msg, [], M)).
+rm([], [], []).
+rm([], A, A).
+rm(['#' | T], [], ['#' | MT]):- rm(T, [], MT).
+rm(['#' | T], [AH | AT], [AH | MT]):- rm(['#' | T], AT, MT). 
+rm([error | T], A, M):- rm(T, [], M).
+rm([H | T], A, M):- append(A,[H], Word), rm(T, Word, M).
+
+remove_errors_all([],[]).
+remove_errors_all([ [error] | Other], [ [error] | Other2]):- remove_errors_all(Other, Other2).
+remove_errors_all([ Nonerror | Other], [ Result | Other2]):- rm(Nonerror, [], Result), remove_errors_all(Other, Other2).
 
 signal_message([], []).
-signal_message([H | T], M):- signal_morse([H | T], Morse), message(Morse, [], Message), remove_errors(Message, M).
+signal_message([H | T], M):- 
+	signal_morse([H | T], Morse), 
+	message(Morse, [], Message), 
+	split(Message, S),
+	remove_errors_all(S, Mcollection),
+	flatten(Mcollection, M).
+	
