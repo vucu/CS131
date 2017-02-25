@@ -20,7 +20,7 @@ run_morse([[1] | Other], ['.' | Remain]):- run_morse(Other, Remain).
 run_morse([[1,1] | Other], ['.' | Remain]):- run_morse(Other, Remain).
 run_morse([[1,1] | Other], ['-' | Remain]):- run_morse(Other, Remain).
 run_morse([[1,1,1] | Other], ['-' | Remain]):- run_morse(Other, Remain).
-run_morse([[1,1,1 | _] | Other], ['-' | Remain]):- 
+run_morse([[1,1,1,1 | _] | Other], ['-' | Remain]):- 
 	run_morse(Other, Remain).
 run_morse([[0] | Other], Remain):- run_morse(Other, Remain).
 run_morse([[0,0] | Other], Remain):- run_morse(Other, Remain).
@@ -29,9 +29,8 @@ run_morse([[0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
 run_morse([[0,0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
 run_morse([[0,0,0,0,0] | Other], ['^' | Remain]):- run_morse(Other, Remain).
 run_morse([[0,0,0,0,0] | Other], ['#' | Remain]):- run_morse(Other, Remain).
-run_morse([[0,0,0,0,0 | _] | Other], ['#' | Remain]):- 
+run_morse([[0,0,0,0,0,0 | _] | Other], ['#' | Remain]):- 
 	run_morse(Other, Remain).
-	
 
 % Morse table
 morse(a, [.,-]).           % A
