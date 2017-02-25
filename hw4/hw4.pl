@@ -93,11 +93,21 @@ morse(ct, [-,.,-,.,-]).          % CT (starting signal, Copy This)
 morse(sk, [.,.,.,-,.,-]).        % SK (end of work, Silent Key)
 morse(sn, [.,.,.,-,.]).          % SN (understood, Sho' 'Nuff)
 
+
+% Implement morse_message
+signal_message([], []).
+signal_message([H | T], M):- 
+	signal_morse([H | T], Morse), 
+	message(Morse, [], Message), 
+	split(Message, S),
+	remove_all(S, Mcollection),
+	flatten(Mcollection, M).
+	
 % Convert Morse to Message
 message([], [], []).
 message([], A, [M]):- morse(M, A).
 message(['#' | T], [], ['#' | Tm]):- message(T, [], Tm).
-message(['#' | T], A, [Other, '#' | Tm]):- morse(Other, A), message(T, [], Tm).
+message(['#' | T], A, [First, '#' | Tm]):- morse(First, A), message(T, [], Tm).
 message(['^' | T], [], M):- message(T, [], M).
 message(['^' | T], A, [Hm | Tm]):- morse(Hm, A), message(T, [], Tm).
 message([H | T], A, M):- append(A, [H], Word), message(T, Word, M).
@@ -112,6 +122,10 @@ split([First, Second| T], [ [First|T2] | Other] ):-
     split([Second | T], [T2 | Other]),
 	!.
 
+remove_all([],[]).
+remove_all([ [error] | Other], [ [error] | Other2]):- remove_all(Other, Other2).
+remove_all([ Nonerror | Other], [ Result | Other2]):- rm(Nonerror, [], Result), remove_all(Other, Other2).
+
 rm([], [], []).
 rm([], A, A).
 rm(['#' | T], [], ['#' | MT]):- rm(T, [], MT).
@@ -119,15 +133,4 @@ rm(['#' | T], [AH | AT], [AH | MT]):- rm(['#' | T], AT, MT).
 rm([error | T], A, M):- rm(T, [], M).
 rm([H | T], A, M):- append(A,[H], Word), rm(T, Word, M).
 
-remove_errors_all([],[]).
-remove_errors_all([ [error] | Other], [ [error] | Other2]):- remove_errors_all(Other, Other2).
-remove_errors_all([ Nonerror | Other], [ Result | Other2]):- rm(Nonerror, [], Result), remove_errors_all(Other, Other2).
 
-signal_message([], []).
-signal_message([H | T], M):- 
-	signal_morse([H | T], Morse), 
-	message(Morse, [], Message), 
-	split(Message, S),
-	remove_errors_all(S, Mcollection),
-	flatten(Mcollection, M).
-	
