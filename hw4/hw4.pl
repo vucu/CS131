@@ -122,9 +122,13 @@ split([First, Second| T], [ [First|T2] | Other] ):-
     split([Second | T], [T2 | Other]),
 	!.
 
+% Remove all errors
 remove_all([],[]).
 remove_all([ [error] | Other], [ [error] | Other2]):- remove_all(Other, Other2).
-remove_all([ Nonerror | Other], [ Result | Other2]):- rm(Nonerror, [], Result), remove_all(Other, Other2).
+remove_all([ Nonerror | Other], [ Result | Other2]):- 
+	Nonerror \= error,
+	rm(Nonerror, [], Result), 
+	remove_all(Other, Other2).
 
 rm([], [], []).
 rm([], A, A).
