@@ -67,10 +67,14 @@
 )
 
 (define (append-ld listdiff . arg)
-	(if (null? arg) listdiff
-	  (apply append-ld (cons (append (take (car listdiff) (length-ld listdiff)) 
-	  								  (car (car arg))) (cdr (car arg))) 
-	  					(cdr arg))
+	(if (null? arg) listdiff   
+		(let acc ((fst (cons listdiff arg)))
+        (cond ((null? (cdr fst)) (car fst))
+			(else (let cons-obj ((prefix (listdiff->list (car fst))))
+				(if (null? prefix) (acc (cdr fst))
+                    (cons-ld (car prefix) (cons-obj (cdr prefix))))
+			))
+		))
 	)
 )
 
