@@ -69,24 +69,23 @@
 (define (append-ld listdiff . arg)
 	(if (null? arg) listdiff   
 		(let acc ((fst (cons listdiff arg)))
-        (cond ((null? (cdr fst)) (car fst))
-			(else (let cons-obj ((prefix (listdiff->list (car fst))))
-				(if (null? prefix) (acc (cdr fst))
-                    (cons-ld (car prefix) (cons-obj (cdr prefix))))
-			))
-		))
+			(if (null? (cdr fst)) (car fst)
+				(let app ((prefix (listdiff->list (car fst))))
+					(if (null? prefix) (acc (cdr fst))
+						(cons-ld (car prefix) (app (cdr prefix))))
+				)
+			)
+		)
 	)
 )
 
 (define (assq-ld obj alistdiff)
 	(if (null-ld? alistdiff) #f
-	  (if (and (pair? (car alistdiff)) (eq? (car (car (car alistdiff))) obj))
-	  	(car (car alistdiff))
-	  	(if (pair? (car alistdiff))
-	  		(assq-ld obj (cons (cdr (car alistdiff)) (cdr alistdiff)))
-	  		#f
-	  	)
-	  )
+		(if (not (pair? (car alistdiff))) #f
+			(if (eq? (car (car (car alistdiff))) obj) (car (car alistdiff))
+				(assq-ld obj (cons (cdr (car alistdiff)) (cdr alistdiff)))
+			)	
+		)
 	)
 )
 
