@@ -58,9 +58,9 @@
 
 (define (length-ld listdiff)
 	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
-        (let acc ((curlist (car listdiff)))
-			(if (eq? curlist (cdr listdiff)) 0
-				(+ 1 (acc (cdr curlist)))
+        (let acc ((fst (car listdiff)))
+			(if (eq? fst (cdr listdiff)) 0
+				(+ 1 (acc (cdr fst)))
 			)
 		)
 	)
