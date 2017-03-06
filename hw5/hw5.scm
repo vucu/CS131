@@ -91,23 +91,20 @@
 )
 
 (define (list->listdiff list)
-  	(if (list? list)
+  	(if (not (list? list)) (error "Not a list!")
 		(apply listdiff (car list) (cdr list))
-		(error "Not a listdiff!")
 	)
 )
 
 (define (listdiff->list listdiff)
-  	(if (listdiff? listdiff)
+  	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
 		(take (car listdiff) (length-ld listdiff))
-		(error "Not a listdiff!")
 	)
 )
 
 (define (expr-returning listdiff)
-  	(if (listdiff? listdiff)
+  	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
 		`(cons ',(take (car listdiff) (length-ld listdiff)) '())
-		(error "Not a listdiff!")
 	)
 )
 
