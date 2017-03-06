@@ -27,21 +27,31 @@
 )
 
 (define (cons-ld obj listdiff)
-	(if (listdiff? listdiff)
-	  (cons (cons obj (car listdiff)) (cdr listdiff)) (error "Not a listdiff!")
+	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
+		(cons 
+			(cons obj (car listdiff)) 
+			(cdr listdiff)
+		) 
 	)
 )
 
 
 (define (car-ld listdiff)
-	(if (and (listdiff? listdiff) (not (null-ld? listdiff)))
-		(car (car listdiff)) (error "ERROR!")
+	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
+		(if (null-ld? listdiff) (error "Empty listdiff!")
+			(car (car listdiff))
+		)
 	)
 )
 
 (define (cdr-ld listdiff)
-	(if (and (listdiff? listdiff) (not (null-ld? listdiff)))
-		(cons (cdr (car listdiff)) (cdr listdiff)) (error "ERROR!")	
+	(if (not (listdiff? listdiff)) (error "Not a listdiff!")
+		(if (null-ld? listdiff) (error "Empty listdiff!")
+			(cons 
+				(cdr (car listdiff)) 
+				(cdr listdiff)
+			)
+		)
 	)
 )
 
@@ -115,4 +125,9 @@
 (define d6 (listdiff ils d1 37))
 (define d7 (append-ld d1 d2 d6))
 (define e1 (expr-returning d1))
+(define kv1 (cons d1 'a))
+(define kv2 (cons d2 'b))
+(define kv3 (cons d3 'c))
+(define kv4 (cons d1 'd))
+(define d8 (listdiff kv1 kv2 kv3 kv4))
               
