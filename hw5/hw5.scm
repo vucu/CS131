@@ -70,11 +70,11 @@
 	)
 )
 
-(define (append-ld listdiff . args)
-	(if (null? args) listdiff
+(define (append-ld listdiff . arg)
+	(if (null? arg) listdiff
 	  (apply append-ld (cons (append (take (car listdiff) (length-ld listdiff)) 
-	  								  (car (car args))) (cdr (car args))) 
-	  					(cdr args))
+	  								  (car (car arg))) (cdr (car arg))) 
+	  					(cdr arg))
 	)
 )
 
