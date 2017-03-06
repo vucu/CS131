@@ -1,29 +1,25 @@
 #lang racket
 
-(define (bad-ld? obj) 
-	(if (null? obj) #t 
-		(if (not (pair? obj)) #t
-			#f
-		)
-  	)
-)
-
 (define (null-ld? obj) 
-	(if (bad-ld? obj) #f
-		(if (not (eq? (car obj) (cdr obj))) #f
-			#t
+	(if (null? obj) #f
+		(if (not (pair? obj)) #f
+			(if (not (eq? (car obj) (cdr obj))) #f
+				#t
+			)
 		)
   	)
 )
 
 (define (listdiff? obj) 
-	(if (bad-ld? obj) #f 
-		(if (null-ld? obj) #t 
-			(if (not (pair? (car obj))) #f
-				(listdiff? (cons (cdr (car obj)) (cdr obj)))
+	(if (null? obj) #f
+		(if (not (pair? obj)) #f
+			(if (null-ld? obj) #t 
+				(if (not (pair? (car obj))) #f
+					(listdiff? (cons (cdr (car obj)) (cdr obj)))
+				)
 			)
 		)
-	)
+  	)
 )
 
 (define (cons-ld obj listdiff)
@@ -126,7 +122,9 @@
 (listdiff? d5)                         
 (listdiff? d6)                         
 (listdiff? d7)                         
-(null-ld? d1)                                                  
+(null-ld? d1)         
+(null-ld? d2)
+(null-ld? d3)                                         
 (null-ld? d6)                          
 (car-ld d1)                                            
 (car-ld d6)                            
