@@ -11,12 +11,20 @@
 (define (null-ld? obj) 
 	(if (bad-ld? obj) #f
 		(if (not (eq? (car obj) (cdr obj))) #f
-				#t
+			#t
 		)
   	)
 )
 
-
+(define (listdiff? obj) 
+	(if (bad-ld? obj) #f 
+		(if (null-ld? obj) #t 
+			(if (not (pair? (car obj))) #f
+				(listdiff? (cons (cdr (car obj)) (cdr obj)))
+			)
+		)
+	)
+)
 
 ; test
 (define ils (append '(a e i o u) 'y))
