@@ -55,8 +55,8 @@
 	)
 )
 
-(define (listdiff obj . args)
-	(cons (cons obj args) '())
+(define (listdiff obj . arg)
+	(cons (cons obj arg) '())
 )
 
 
