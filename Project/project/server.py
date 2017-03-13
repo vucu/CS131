@@ -10,9 +10,7 @@ import conf
 
 from twisted.web.client import getPage
 from twisted.internet import reactor, protocol
-from twisted.application import service, internet
 from twisted.protocols.basic import LineReceiver
-from twisted.python import log
 
 class ServerProtocol(LineReceiver):
     def __init__(self, factory):
