@@ -18,32 +18,34 @@ class ServerProtocol(LineReceiver):
 
     def connectionMade(self):
         self.factory.connections += 1
-        logging.info("Connection established. Total: {0}".format(self.factory.connections))
+        logging.info("Connection made. Total: {0}".format(self.factory.connections))
 
     def lineReceived(self, line):
         logging.info("Line received: {0}".format(line))
         params = line.split(" ")
 
-        if (params[0] == "IAMAT"):
+        if params[0] == "IAMAT":
             self.process_IAMAT(line)
-        elif (params[0] == "WHATSAT"):
+        elif params[0] == "WHATSAT":
             self.process_WHATSAT(line)
-        elif (params[0] == "AT"):
+        elif params[0] == "AT":
             self.process_AT(line)
         else:
-            logging.error("Invalid command: " + line)
+            logging.error("? " + line)
             self.transport.write("? " + line + "\n")
+
+        logging.info("Done!")
         return
 
     # IAMAT
     def process_IAMAT(self, line):
         params = line.split(" ")
         if len(params) != 4:
-            logging.error("Invalid IAMAT command: {0}".format(line))
+            logging.error("Invalid IAMAT: {0}".format(line))
             self.transport.write("? {0}\n".format(line))
             return
 
-        command = params[0]
+        token = params[0]
         client_id = params[1]
         position = params[2]
         client_time = params[3]
@@ -60,65 +62,36 @@ class ServerProtocol(LineReceiver):
             logging.info("New client: {0}".format(client_id))
 
         self.factory.clients[client_id] = {"msg": response, "time": client_time}
-        logging.info("Server response: {0}".format(response))
+        logging.info("Response: {0}".format(response))
         self.transport.write("{0}\n".format(response))
 
-        # propagate updates
-        logging.info("Broadcasting location update to neighbors")
-        self.updateLocation(response)
-
-    # AT
-    def process_AT(self, line):
-        params = line.split()
-        # check validity of command
-        if len(params) != 7:
-            logging.error("Invalid AT command: {0}".format(line))
-            self.transport.write("? {0}\n".format(line))
-            return
-
-        command_AT = params[0]
-        server = params[1]
-        time_difference = params[2]
-        command_IAMAT = params[3]
-        client_id = params[4]
-        position = params[5]
-        client_time = params[6]
-
-        # check for duplicate update
-        if (client_id in self.factory.clients) and (client_time <= self.factory.clients[client_id]["time"]):
-            logging.info("Duplicate location update from {0}".format(server))
-            return
-
-        if client_id in self.factory.clients:
-            logging.info("(AT) Location update from existing client: {0}".format(client_id))
-        else:
-            logging.info("(AT) Location update from new client: {0}".format(client_id))
-
-        self.factory.clients[client_id] = {"msg": (
-            "{0} {1} {2} {3} {4} {5} {6}".format(command_AT, server, time_difference, command_IAMAT, client_id, position,
-                                                 client_time)),
-            "time": client_time}
-        logging.info("Added {0} : {1}".format(client_id, self.factory.clients[client_id]["msg"]))
-
-        self.updateLocation(self.factory.clients[client_id]["msg"])
-        return
+        logging.info("Propagate to neighbors")
+        for n in conf.NEIGHBORS[self.factory.serverName]:
+            reactor.connectTCP('localhost', conf.PORT_NUM[n], Client(response))
+            logging.info("Success! {0} propagated to {1}".format(self.factory.serverName, n))
 
     # WHATSAT
     def process_WHATSAT(self, line):
         params = line.split(" ")
         if len(params) != 4:
-            logging.error("Invalid WHATSAT command: {0}".format(line))
+            logging.error("Invalid WHATSAT: {0}".format(line))
             self.transport.write("? {0}\n".format(line))
             return
-        command_WHATSAT = params[0]
-        clientID = params[1]
+        token = params[0]
+        client_id = params[1]
         radius = params[2]
         limit = params[3]
 
-        # cache check
-        stored_response = self.factory.clients[clientID]["msg"]
-        logging.info("Stored response: {0}".format(stored_response))
-        command_AT, server, timeDifference, command_IAMAT, clientID_2, position, clientTime = stored_response.split()
+        cache_response = self.factory.clients[client_id]["msg"]
+        logging.info("Cache response: {0}".format(cache_response))
+        cache_params = cache_response.split()
+        command_AT = cache_params[0]
+        server = cache_params[1]
+        timeDifference = cache_params[2]
+        command_IAMAT = cache_params[3]
+        clientID_2 = cache_params[4]
+        position = cache_params[5]
+        clientTime = cache_params[6]
 
         position = re.sub(r'[-]', ' -', position)
         position = re.sub(r'[+]', ' +', position).split()
@@ -130,9 +103,47 @@ class ServerProtocol(LineReceiver):
         logging.info("API request: {0}".format(request))
         response = getPage(request)
 
-        response.addCallback(callback=lambda x: (self.print_json(x, clientID, limit)))
+        response.addCallback(callback=lambda x: (self.print_json(x, client_id, limit)))
 
-    # auxiliary functions
+    # AT
+    def process_AT(self, line):
+        params = line.split()
+        if len(params) != 7:
+            logging.error("Invalid AT: {0}".format(line))
+            self.transport.write("? {0}\n".format(line))
+            return
+
+        token = params[0]
+        server = params[1]
+        time_difference = params[2]
+        iamat = params[3]
+        client_id = params[4]
+        position = params[5]
+        client_time = params[6]
+
+        # check duplicate
+        if (client_id in self.factory.clients) and (client_time <= self.factory.clients[client_id]["time"]):
+            logging.info("Duplicate from {0}".format(server))
+            return
+
+        if client_id in self.factory.clients:
+            logging.info("(AT) Location update from existing client: {0}".format(client_id))
+        else:
+            logging.info("(AT) Location update from new client: {0}".format(client_id))
+
+        self.factory.clients[client_id] = {"msg": (
+            "{0} {1} {2} {3} {4} {5} {6}".format(token, server, time_difference, iamat, client_id, position,
+                                                 client_time)),
+            "time": client_time}
+        logging.info("Added {0} : {1}".format(client_id, self.factory.clients[client_id]["msg"]))
+
+        logging.info("Propagate to neighbors")
+        response = self.factory.clients[client_id]["msg"]
+        for n in conf.NEIGHBORS[self.factory.serverName]:
+            reactor.connectTCP('localhost', conf.PORT_NUM[n], Client(response))
+            logging.info("Success! {0} propagated to {1}".format(self.factory.serverName, n))
+        return
+
     def print_json(self, response, client_id, limit):
         data = json.loads(response)
         results = data["results"]
@@ -147,13 +158,8 @@ class ServerProtocol(LineReceiver):
 
     def connectionLost(self, reason):
         self.factory.connections -= 1
-        logging.info("Connection was lost. Total now = {0}".format(self.factory.connections))
+        logging.info("Lost connection. Total: {0}".format(self.factory.connections))
 
-    def updateLocation(self, message):
-        for n in conf.NEIGHBORS[self.factory.serverName]:
-            reactor.connectTCP('localhost', conf.PORT_NUM[n], Client(message))
-            logging.info("Updated location sent by client {0} to client {1}".format(self.factory.serverName, n))
-        return
 
 
 class Server(protocol.ServerFactory):
@@ -163,17 +169,17 @@ class Server(protocol.ServerFactory):
         self.clients = {}
         self.connections = 0
 
-        # create log file with timestamp
-        filename = self.serverName + "_" + re.sub(r'[:T]', '_',
-                                                  datetime.datetime.utcnow().isoformat().split('.')[0]) + ".log"
+        filename = self.serverName + ".log"
         logging.basicConfig(filename=filename, level=logging.DEBUG)
-        logging.info('{0}:{1} server started'.format(self.serverName, self.portNum))
+        logging.info('Log start')
+        logging.info('Server {0}'.format(self.serverName))
+        logging.info('Port {0}'.format(self.portNum))
 
     def buildProtocol(self, addr):
         return ServerProtocol(self)
 
     def stopFactory(self):
-        logging.info("{0} server shutdown".format(self.serverName))
+        logging.info("Server terminated")
 
 
 class ClientProtocol(LineReceiver):
@@ -184,6 +190,7 @@ class ClientProtocol(LineReceiver):
         self.sendLine(self.factory.message)
         self.transport.loseConnection()
 
+
 class Client(protocol.ClientFactory):
     def __init__(self, message):
         self.message = message
@@ -192,10 +199,9 @@ class Client(protocol.ClientFactory):
         return ClientProtocol(self)
 
 
-# Main
 def main():
     if len(sys.argv) != 2:
-        print "Error:  Need 2 args"
+        print "usage: server.py [SERVER_NAME]"
         exit()
     server_name = sys.argv[1]
     factory = Server(server_name)
