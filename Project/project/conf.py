@@ -8,11 +8,11 @@ API_ENDPOINT = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?"
 # TCP port numbers for each server instance (server ID: case sensitive)
 # Please use the port numbers allocated by the TA.
 PORT_NUM = {
-    'Alford': 12130,
-    'Ball': 12131,
-    'Hamilton': 12132,
-    'Holiday': 12133,
-    'Welsh': 12134
+    'Alford': 12120,
+    'Ball': 12121,
+    'Hamilton': 12122,
+    'Holiday': 12123,
+    'Welsh': 12124
 }
 
 # Each Server can talk with other servers within the given 5, and we define

@@ -44,6 +44,7 @@ class ServerProtocol(LineReceiver):
             logging.error("Invalid IAMAT: {0}".format(line))
             self.transport.write("? {0}\n".format(line))
             return
+        logging.info("IAMAT begin")
 
         token = params[0]
         client_id = params[1]
@@ -77,6 +78,8 @@ class ServerProtocol(LineReceiver):
             logging.error("Invalid WHATSAT: {0}".format(line))
             self.transport.write("? {0}\n".format(line))
             return
+        logging.info("WHATSAT begin")
+
         token = params[0]
         client_id = params[1]
         radius = params[2]
@@ -85,22 +88,24 @@ class ServerProtocol(LineReceiver):
         cache_response = self.factory.clients[client_id]["msg"]
         logging.info("Cache response: {0}".format(cache_response))
         cache_params = cache_response.split()
-        command_AT = cache_params[0]
+        at = cache_params[0]
         server = cache_params[1]
-        timeDifference = cache_params[2]
-        command_IAMAT = cache_params[3]
-        clientID_2 = cache_params[4]
+        time_difference = cache_params[2]
+        iamat = cache_params[3]
+        client_id2 = cache_params[4]
         position = cache_params[5]
-        clientTime = cache_params[6]
+        client_time = cache_params[6]
 
         position = re.sub(r'[-]', ' -', position)
         position = re.sub(r'[+]', ' +', position).split()
-        position_calibrated = position[0] + "," + position[1]
+        position_xy = position[0] + "," + position[1]
 
-        # API CALLS
-        request = "{0}location={1}&radius={2}&sensor=false&key={3}".format(conf.API_ENDPOINT, position_calibrated,
-                                                                           radius, conf.API_KEY)
-        logging.info("API request: {0}".format(request))
+        request = "{0}location={1}&radius={2}&sensor=false&key={3}".format(
+            conf.API_ENDPOINT,
+            position_xy,
+            radius,
+            conf.API_KEY)
+        logging.info("Google Place request: {0}".format(request))
         response = getPage(request)
 
         response.addCallback(callback=lambda x: (self.print_json(x, client_id, limit)))
@@ -112,6 +117,7 @@ class ServerProtocol(LineReceiver):
             logging.error("Invalid AT: {0}".format(line))
             self.transport.write("? {0}\n".format(line))
             return
+        logging.info("AT begin")
 
         token = params[0]
         server = params[1]
@@ -127,9 +133,9 @@ class ServerProtocol(LineReceiver):
             return
 
         if client_id in self.factory.clients:
-            logging.info("(AT) Location update from existing client: {0}".format(client_id))
+            logging.info("(AT) Update from existing client: {0}".format(client_id))
         else:
-            logging.info("(AT) Location update from new client: {0}".format(client_id))
+            logging.info("(AT) Update from new client: {0}".format(client_id))
 
         self.factory.clients[client_id] = {"msg": (
             "{0} {1} {2} {3} {4} {5} {6}".format(token, server, time_difference, iamat, client_id, position,
@@ -150,7 +156,7 @@ class ServerProtocol(LineReceiver):
 
         # filter out
         data["results"] = results[0:int(limit)]
-        logging.info("API Response: {0}".format(json.dumps(data, indent=4)))
+        logging.info("Google Place response: {0}".format(json.dumps(data, indent=4)))
         msg = self.factory.clients[client_id]["msg"]
 
         full_response = "{0}\n{1}\n\n".format(msg, json.dumps(data, indent=4))

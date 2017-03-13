@@ -3,8 +3,6 @@ pkill -f "python server.py"
 python server.py Alford & python server.py Ball & python server.py Hamilton & python server.py Holiday & python server.py Welsh &
 
 # client side
-telnet localhost 12130
+telnet localhost 12120
 IAMAT kiwi.cs.ucla.edu +34.068930-118.445127 1479413884.392014450
 WHATSAT kiwi.cs.ucla.edu 10 5
-
-
