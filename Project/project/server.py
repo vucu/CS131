@@ -1,7 +1,6 @@
 #!/usr/bin
 
 import re
-import datetime
 import logging
 import time
 import json
@@ -153,12 +152,9 @@ class ServerProtocol(LineReceiver):
     def print_json(self, response, client_id, limit):
         data = json.loads(response)
         results = data["results"]
-
-        # filter out
         data["results"] = results[0:int(limit)]
         logging.info("Google Place response: {0}".format(json.dumps(data, indent=4)))
         msg = self.factory.clients[client_id]["msg"]
-
         full_response = "{0}\n{1}\n\n".format(msg, json.dumps(data, indent=4))
         self.transport.write(full_response)
 
