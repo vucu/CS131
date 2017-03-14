@@ -11,6 +11,13 @@ from twisted.web.client import getPage
 from twisted.internet import reactor, protocol
 from twisted.protocols.basic import LineReceiver
 
+def isFloat(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 class ServerProtocol(LineReceiver):
     def __init__(self, factory):
         self.factory = factory
@@ -51,6 +58,20 @@ class ServerProtocol(LineReceiver):
         client_time = params[3]
         time_difference = time.time() - float(params[3])
 
+        if "+" not in position and "-" not in position:
+            logging.error("Invalid IAMAT location")
+            self.transport.write("Invalid IAMAT location\n")
+            return
+        location = position.replace("+", " +").replace("-", " -").split()
+        if len(location) != 2 or (not isFloat(location[0]) or not isFloat(location[1])):
+            logging.error("Invalid IAMAT location")
+            self.transport.write("Invalid IAMAT location\n")
+            return
+        if not isFloat(client_time):
+            logging.error("Invalid IAMAT time")
+            self.transport.write("Invalid IAMAT time\n")
+            return
+
         if time_difference >= 0:
             response = "AT {0} +{1} {2}".format(self.factory.serverName, time_difference, line)
         else:
@@ -83,6 +104,28 @@ class ServerProtocol(LineReceiver):
         client_id = params[1]
         radius = params[2]
         limit = params[3]
+
+        if not isFloat(radius):
+            logging.error("Invalid radius")
+            self.transport.write("Invalid radius\n")
+            return
+        if float(radius) <= 0 or float(radius) > 50:
+            logging.error("Radius not in range")
+            self.transport.write("Radius not in range\n")
+            return
+        if not limit.isdigit():
+            logging.error("Invalid limit")
+            self.transport.write("Invalid limit\n")
+            return
+        if int(limit) <= 0 or int(limit) > 20:
+            logging.error("Limit not in range")
+            self.transport.write("Limit not in range\n")
+            return
+
+        if client_id not in self.factory.clients:
+            logging.error("Client not found")
+            self.transport.write("Client not found\n")
+            return
 
         cache_response = self.factory.clients[client_id]["msg"]
         logging.info("Cache response: {0}".format(cache_response))
@@ -125,6 +168,13 @@ class ServerProtocol(LineReceiver):
         client_id = params[4]
         position = params[5]
         client_time = params[6]
+
+        if server not in conf.PORT_NUM:
+            logging.error("Invalid server name")
+            return
+        if not isFloat(client_time):
+            logging.error("Invalid client time")
+            return
 
         # check duplicate
         if (client_id in self.factory.clients) and (client_time <= self.factory.clients[client_id]["time"]):
@@ -203,9 +253,12 @@ class Client(protocol.ClientFactory):
 
 def main():
     if len(sys.argv) != 2:
-        print "usage: server.py [SERVER_NAME]"
+        print "usage: server.py [SERVER_NAME].\n"
         exit()
     server_name = sys.argv[1]
+    if server_name not in conf.PORT_NUM:
+        print "Invalid Server Name " + server_name + ".\n"
+        exit(1)
     factory = Server(server_name)
     reactor.listenTCP(conf.PORT_NUM[server_name], factory)
     reactor.run()
